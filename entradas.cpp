@@ -1,124 +1,81 @@
 #include <Arduino.h>
+#include <Switches.h>
 
-//MANDO:
-  #include <RCSwitch.h>
-  RCSwitch mySwitch = RCSwitch();
+Switches* switchCentralita;
+
 
 //ENTRADAS DIGITALES:
-  #define FC 3//Portal cerrado
-  #define FA 4//Portal abierto
-  
+#define FC 3//Portal cerrado
+#define FA 4//Portal abierto
+#define centralita 5//Centralita rolling code
+
 //ENTRADA ANALOGICA:
-  #define consumo A0//Lectura analógica
-  
+#define consumo A0//Lectura analógica
+
 void setup_entradas()
 {
-    mySwitch.enableReceive(0);
-    pinMode(FC,INPUT_PULLUP);
-    pinMode(FA,INPUT_PULLUP);
+
+  pinMode(FC, INPUT_PULLUP);
+  pinMode(FA, INPUT_PULLUP);
+  pinMode(centralita, INPUT_PULLUP);
+
+  switchCentralita = new Switches(60, centralita);
 }
 
 bool recibir()
 {
   static unsigned long tInicial = 0;
-  if(millis() >= tInicial + 500)
+  if (millis() >= tInicial + 500)
   {
-    
-    if (mySwitch.available()) 
-      {   
-        long value = mySwitch.getReceivedValue();
-        mySwitch.resetAvailable();
-        
-        switch(value)
-        {
-          case 10548744:         
-             mySwitch.resetAvailable();
-             tInicial = millis();
-             //Serial.println("mando");
-             return true;    
-             
-           case 10535169:
-             mySwitch.resetAvailable(); 
-             tInicial = millis();  
-             //Serial.println("mando");    
-             return true;
-            
-           case 5592323:
-            mySwitch.resetAvailable();
-            tInicial = millis();
-            //Serial.println("mando");
-            return true;
+    if (switch2->interlockButton(true)) {
+      tInicial = millis();
+      return true;
 
-          case 10178561:
-            mySwitch.resetAvailable();
-            tInicial = millis();
-            //Serial.println("mando");
-            return true;
-        }
-      }
+    }
   }
-    mySwitch.resetAvailable();
-    return false;
+  return false;
 }
 
 byte antireboteFC()
 {
-  byte PM=digitalRead(FC);
-  static byte estadoFC=0;//En esta variable guardo el estado actual del pulsador
-  static unsigned long tInicial_FC=millis();
-  const unsigned long antiRebote=60;//Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
-  if(PM!=estadoFC)
+  byte PM = digitalRead(FC);
+  static byte estadoFC = 0; //En esta variable guardo el estado actual del pulsador
+  static unsigned long tInicial_FC = millis();
+  const unsigned long antiRebote = 60; //Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
+  if (PM != estadoFC)
   {
     PM = digitalRead(FC);
-    if(millis()>=tInicial_FC+antiRebote)
+    if (millis() >= tInicial_FC + antiRebote)
     {
-      estadoFC=PM;
+      estadoFC = PM;
     }
   }
   else
   {
-    tInicial_FC=millis();
+    tInicial_FC = millis();
   }
-  /*
-  while(PM!=estadoFC)
-  {
-    PM = digitalRead(FC);
-    if(millis()>=tInicial_FC+antiRebote)
-    {
-      estadoFC=PM;
-    }
-  }*/
   return estadoFC;
 }
 
 byte antireboteFA()
 {
-  byte PM=digitalRead(FA);
-  static byte estadoFA=0;//En esta variable guardo el estado actual del pulsador
-  static unsigned long tInicial_FA=millis();
-  const unsigned long antiRebote=60;//Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
-  if(PM!=estadoFA)
+  byte PM = digitalRead(FA);
+  static byte estadoFA = 0; //En esta variable guardo el estado actual del pulsador
+  static unsigned long tInicial_FA = millis();
+  const unsigned long antiRebote = 60; //Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
+  if (PM != estadoFA)
   {
-    PM=digitalRead(FA);
-    if(millis()>=tInicial_FA+antiRebote)
+    PM = digitalRead(FA);
+    if (millis() >= tInicial_FA + antiRebote)
     {
-      estadoFA=PM;
+      estadoFA = PM;
     }
   }
   else
   {
-    tInicial_FA=millis();
+    tInicial_FA = millis();
   }
-  /*
-  while(PM!=estadoFA)
-  {
-    PM=digitalRead(FA);
-    if(millis()>=tInicial_FA+antiRebote)
-    {
-      estadoFA=PM;
-    }
-  }*/
-  
+
   return estadoFA;
 }
 
@@ -130,35 +87,35 @@ bool antiaplastamiento(bool arranque)
   static int fuerza_max;
   static bool listo = false;
   //Serial.println(fuerza);
-  if(arranque && !listo)
+  if (arranque && !listo)
   {
-    if(tInicialAplastamiento + 2000 <= millis())
+    if (tInicialAplastamiento + 2000 <= millis())
     {
       listo = true;
     }
   }
-  else if(!arranque)//Se resetean las variables
+  else if (!arranque) //Se resetean las variables
   {
     listo = false;
     tInicialAplastamiento = millis();
     fuerza_max = 0;
   }
-  if(listo)
+  if (listo)
   {
-    if(fuerza > fuerza_max) //Actualizamos el valor de fuerza_max al más alto
+    if (fuerza > fuerza_max) //Actualizamos el valor de fuerza_max al más alto
     {
       fuerza_max = fuerza;
     }
-  
-    if(fuerza_max > fuerza_limite) //Si la fuerza maxima supera el limite
+
+    if (fuerza_max > fuerza_limite) //Si la fuerza maxima supera el limite
     {
       //Serial.println(fuerza_max);
       return true;//CAMBIAR POR TRUE
     }
     else
     {
-    return false;
-    //Serial.println("false");
+      return false;
+      //Serial.println("false");
     }
   }
   else
@@ -166,4 +123,3 @@ bool antiaplastamiento(bool arranque)
     return false;
   }
 }
-

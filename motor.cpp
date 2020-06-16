@@ -2,15 +2,15 @@
 #include <Arduino.h>
 
 //SALIDAS:
-  #define MC 8//Motor cerrar
-  #define MA 9//Motor abrir
-  #define MV 10//Motor velocidad
+#define MC 8//Motor cerrar
+#define MA 9//Motor abrir
+#define MV 10//Motor velocidad
 
 void setup_motor()
 {
-  for (byte i=8; i<=10; i++)
-  { 
-    pinMode(i,OUTPUT);
+  for (byte i = 8; i <= 10; i++)
+  {
+    pinMode(i, OUTPUT);
     digitalWrite(i, HIGH);
   }
 }
@@ -41,6 +41,3 @@ void lenta()
 {
   digitalWrite(MV, HIGH);
 }
-
-
-
