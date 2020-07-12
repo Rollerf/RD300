@@ -4,7 +4,6 @@
 
 bool T1(bool estado, long consignaTiempo) //Para activar
 {
-
   static unsigned long tiempoInicial;
   bool salida;
 

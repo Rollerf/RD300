@@ -2,10 +2,6 @@
 #include "entradas.h"
 #include "tiempos.h"
 
-//ENTRADAS DIGITALES:
-#define FC 3//Portal cerrado
-#define FA 4//Portal abierto
-
 //ESTACIONES:
 bool E0 = false;
 bool E1 = false;
@@ -19,9 +15,6 @@ bool E7_c = false;
 bool E8 = false;
 bool E9 = false;
 bool E10 = false;
-
-//VARIABLES DE ESTADO:
-//bool mando = false;
 
 void setup() {
 

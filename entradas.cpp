@@ -3,7 +3,6 @@
 
 Switches* switchCentralita;
 
-
 //ENTRADAS DIGITALES:
 #define FC 3//Portal cerrado
 #define FA 4//Portal abierto
@@ -14,7 +13,6 @@ Switches* switchCentralita;
 
 void setup_entradas()
 {
-
   pinMode(FC, INPUT_PULLUP);
   pinMode(FA, INPUT_PULLUP);
   pinMode(centralita, INPUT_PULLUP);
@@ -25,9 +23,9 @@ void setup_entradas()
 bool recibir()
 {
   static unsigned long tInicial = 0;
-  if (millis() >= tInicial + 500)
+  if (millis() >= tInicial + 1500)
   {
-    if (switch2->interlockButton(true)) {
+    if (switchCentralita->buttonMode(true)) {
       tInicial = millis();
       return true;
 
