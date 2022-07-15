@@ -17,7 +17,7 @@ bool E9 = false;
 bool E10 = false;
 
 void setup() {
-
+  
   setup_motor();
 
   setup_entradas();
