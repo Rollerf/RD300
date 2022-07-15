@@ -81,7 +81,7 @@ bool antiaplastamiento(bool arranque)
 {
   static unsigned long tInicialAplastamiento = millis();
   int fuerza = analogRead(consumo);
-  const int fuerza_limite = 180;
+  const int fuerza_limite = 150; //Anterior valor 200
   static int fuerza_max;
   static bool listo = false;
   //Serial.println(fuerza);
