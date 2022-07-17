@@ -1,37 +1,98 @@
 #include <Arduino.h>
 #include <Switches.h>
+#include <PubSubClient.h>
+#include "MQTTconfig.h"
 
-Switches* switchCentralita;
+//TODO: Se quita todo lo que tenga que ver con centralita
+//Switches* switchCentralita;
 
 //ENTRADAS DIGITALES:
 #define FC 3//Portal cerrado
 #define FA 4//Portal abierto
-#define centralita 5//Centralita rolling code
+
+//TODO: Esta entrada se quita y es sustituida por la orden wifi
+//#define centralita 5//Centralita rolling code
 
 //ENTRADA ANALOGICA:
 #define consumo A0//Lectura analógica
 
-void setup_entradas()
+//Variable orden recibida
+static bool accionar = false;
+
+void callback(char *topicCommand, byte *payload, unsigned int length) {
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topicCommand);
+  Serial.print("Message:");
+//  for (int i = 0; i < length; i++) {
+//    Serial.print((char) payload[i]);
+//  }
+
+  String myString = String((char*)payload);
+  Serial.println(myString);
+  Serial.println("-----------------------");
+  accionar = true;
+}
+
+void MQTTConnection(PubSubClient client) {
+  //connecting to a mqtt broker
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+
+  while (!client.connected()) {
+//    String client_id = "esp8266-client-";
+//    client_id += String(WiFi.macAddress());
+    String client_id = "portal-trasero";
+    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("Public emqx mqtt broker connected");
+    } else {
+      Serial.print("failed with state ");
+      Serial.print(client.state());
+      delay(2000);
+    }
+  }
+  // publish and subscribe
+  client.subscribe(topicCommand);
+}
+
+void setup_entradas(PubSubClient client)
 {
   pinMode(FC, INPUT_PULLUP);
   pinMode(FA, INPUT_PULLUP);
-  pinMode(centralita, INPUT_PULLUP);
 
-  switchCentralita = new Switches(60, centralita);
+  MQTTConnection(client);
+
+  
+  //TODO: Se quita todo lo que tenga que ver con centralita
+//  pinMode(centralita, INPUT_PULLUP);
+
+//  switchCentralita = new Switches(60, centralita);
 }
+
+//TODO: Se quita todo lo que tenga que ver con centralita
+//Puedo hacer que use una variable y devuelva y resete la variable
+//bool recibir()
+//{
+//  static unsigned long tInicial = 0;
+//  if (millis() >= tInicial + 1500)
+//  {
+//    if (switchCentralita->buttonMode(true)) {
+//      tInicial = millis();
+//      return true;
+//
+//    }
+//  }
+//  return false;
+//}
 
 bool recibir()
 {
-  static unsigned long tInicial = 0;
-  if (millis() >= tInicial + 1500)
-  {
-    if (switchCentralita->buttonMode(true)) {
-      tInicial = millis();
-      return true;
-
-    }
+  if(accionar){
+      accionar = false;
+      return !accionar;
   }
-  return false;
+
+  return accionar;
 }
 
 byte antireboteFC()
