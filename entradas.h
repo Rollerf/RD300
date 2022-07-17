@@ -1,7 +1,6 @@
-#include <PubSubClient.h>
-void setup_entradas(PubSubClient client);
+void setup_entradas();
 bool recibir();
 byte antireboteFC();
 byte antireboteFA();
 bool antiaplastamiento(bool arranque);
-void MQTTConnection();
+void setAccionar(bool nuevaAccion);

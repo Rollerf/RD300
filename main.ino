@@ -2,11 +2,13 @@
 #include "entradas.h"
 #include "tiempos.h"
 #include "WIFIconfig.h"
+#include "MQTTconfig.h"
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <PubSubClient.h>
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -26,13 +28,13 @@ bool E9 = false;
 bool E10 = false;
 
 void setup() {
-  Serial.begin(115200);
+//  Serial.begin(115200);
   
   WIFIConnection();
 
   setup_motor();
 
-  setup_entradas(client);
+  setup_entradas();
 
   E0 = true;
 
@@ -49,7 +51,7 @@ void loop()
 
     if (recibir())
     {
-      //Serial.println("E0");
+      Serial.println("E0");
       //mando = true;
       E1 = true;
       E0 = false;
@@ -341,8 +343,6 @@ void loop()
 }
 
 void WIFIConnection() {
-  // Set software serial baud to 115200;
-  Serial.begin(115200);
   // connecting to a WiFi network
   WiFi.begin(ssid, password);
 
@@ -387,4 +387,40 @@ void OTAConfig() {
     }
   });
   ArduinoOTA.begin();
+}
+
+void MQTTConnection() {
+  //connecting to a mqtt broker
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+
+  while (!client.connected()) {
+    String client_id = "esp8266-client-";
+    client_id += String(WiFi.macAddress());
+    //String client_id = "portal-trasero";
+    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("Public emqx mqtt broker connected");
+    } else {
+      Serial.print("failed with state ");
+      Serial.print(client.state());
+      delay(2000);
+    }
+  }
+  // publish and subscribe
+  client.subscribe(topicCommand);
+}
+
+void callback(char *topicCommand, byte *payload, unsigned int length) {
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topicCommand);
+  Serial.print("Message:");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char) payload[i]);
+  }
+
+  String myString = String((char*)payload);
+  Serial.println(myString);
+  Serial.println("-----------------------");
+  setAccionar(true);
 }

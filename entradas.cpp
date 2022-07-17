@@ -1,7 +1,5 @@
 #include <Arduino.h>
 #include <Switches.h>
-#include <PubSubClient.h>
-#include "MQTTconfig.h"
 
 //TODO: Se quita todo lo que tenga que ver con centralita
 //Switches* switchCentralita;
@@ -19,48 +17,10 @@
 //Variable orden recibida
 static bool accionar = false;
 
-void callback(char *topicCommand, byte *payload, unsigned int length) {
-  Serial.print("Message arrived in topic: ");
-  Serial.println(topicCommand);
-  Serial.print("Message:");
-//  for (int i = 0; i < length; i++) {
-//    Serial.print((char) payload[i]);
-//  }
-
-  String myString = String((char*)payload);
-  Serial.println(myString);
-  Serial.println("-----------------------");
-  accionar = true;
-}
-
-void MQTTConnection(PubSubClient client) {
-  //connecting to a mqtt broker
-  client.setServer(mqtt_broker, mqtt_port);
-  client.setCallback(callback);
-
-  while (!client.connected()) {
-//    String client_id = "esp8266-client-";
-//    client_id += String(WiFi.macAddress());
-    String client_id = "portal-trasero";
-    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
-      Serial.println("Public emqx mqtt broker connected");
-    } else {
-      Serial.print("failed with state ");
-      Serial.print(client.state());
-      delay(2000);
-    }
-  }
-  // publish and subscribe
-  client.subscribe(topicCommand);
-}
-
-void setup_entradas(PubSubClient client)
+void setup_entradas()
 {
   pinMode(FC, INPUT_PULLUP);
   pinMode(FA, INPUT_PULLUP);
-
-  MQTTConnection(client);
 
   
   //TODO: Se quita todo lo que tenga que ver con centralita
@@ -84,6 +44,10 @@ void setup_entradas(PubSubClient client)
 //  }
 //  return false;
 //}
+
+void setAccionar(bool nuevaAccion){
+  accionar = nuevaAccion;
+}
 
 bool recibir()
 {
