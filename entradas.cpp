@@ -5,7 +5,7 @@
 //Switches* switchCentralita;
 
 //ENTRADAS DIGITALES:
-#define FC 3//Portal cerrado
+#define FC 5//Portal cerrado
 #define FA 4//Portal abierto
 
 //TODO: Esta entrada se quita y es sustituida por la orden wifi
@@ -22,11 +22,11 @@ void setup_entradas()
   pinMode(FC, INPUT_PULLUP);
   pinMode(FA, INPUT_PULLUP);
 
-  
-  //TODO: Se quita todo lo que tenga que ver con centralita
-//  pinMode(centralita, INPUT_PULLUP);
 
-//  switchCentralita = new Switches(60, centralita);
+  //TODO: Se quita todo lo que tenga que ver con centralita
+  //  pinMode(centralita, INPUT_PULLUP);
+
+  //  switchCentralita = new Switches(60, centralita);
 }
 
 //TODO: Se quita todo lo que tenga que ver con centralita
@@ -45,15 +45,19 @@ void setup_entradas()
 //  return false;
 //}
 
-void setAccionar(bool nuevaAccion){
+void setAccionar(bool nuevaAccion) {
   accionar = nuevaAccion;
+  Serial.print("Accionar: ");
+  Serial.println(accionar);
 }
 
 bool recibir()
 {
-  if(accionar){
-      accionar = false;
-      return !accionar;
+  if (accionar) {
+    accionar = false;
+    Serial.print("Accionar: ");
+    Serial.println(accionar);
+    return !accionar;
   }
 
   return accionar;
@@ -105,7 +109,9 @@ byte antireboteFA()
 bool antiaplastamiento(bool arranque)
 {
   static unsigned long tInicialAplastamiento = millis();
-  int fuerza = analogRead(consumo);
+  //TODO: Cambiar esto
+  //  int fuerza = analogRead(consumo);
+  int fuerza = 100;
   const int fuerza_limite = 150; //Anterior valor 200
   static int fuerza_max;
   static bool listo = false;

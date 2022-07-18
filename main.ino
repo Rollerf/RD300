@@ -28,23 +28,38 @@ bool E9 = false;
 bool E10 = false;
 
 void setup() {
-//  Serial.begin(115200);
-  
+  Serial.begin(115200);
+
   WIFIConnection();
 
   setup_motor();
 
   setup_entradas();
 
+////////////////OJO///////////////////////////////////
+//Esto en principio es para que inicialice los finales de carrera. Posiblemente sea inecesario.
+//Se puede cambiar el estado inicial de la variable o llamarlo en el setup de entradas
+  Serial.print("antireboteFC: ");
+  Serial.println(antireboteFC());
+
+  Serial.print("antireboteFA: ");
+  Serial.println(antireboteFA());
+//////////////////////////////////////////////////////
+
   E0 = true;
 
   OTAConfig();
+
+  MQTTConnection();
 
   Serial.println("Connected to the WiFi network");
 }
 
 void loop()
 {
+  ArduinoOTA.handle();
+  client.loop();
+
   if (E0)
   {
     parar();
@@ -62,6 +77,7 @@ void loop()
   {
     if (!antireboteFC() && !antireboteFA())
     {
+      Serial.println("E1");
       E2 = true;
       E1 = false;
     }
@@ -79,8 +95,9 @@ void loop()
       C_Tiempos(1);//Tiempo inicial
       E1 = false;
     }
-    
+
     T1(0, 0); //Reseteo el temporizador
+    //TODO: Parece que el error esta en el antiaplastamiento. Posiblemente la declaracion del pin analogico o algo. Puentear la funcion haciendo una con return true o false y seguir probando.
     antiaplastamiento(false);//Reseteamos valores de antiaplastamiento
     //Serial.println("E1");
   }
@@ -95,7 +112,7 @@ void loop()
 
       E0 = true;
       E2 = false;
-      //Serial.println("E2");
+      Serial.println("E2");
     }
 
   }
@@ -415,12 +432,13 @@ void callback(char *topicCommand, byte *payload, unsigned int length) {
   Serial.print("Message arrived in topic: ");
   Serial.println(topicCommand);
   Serial.print("Message:");
+  String payload_n;
+
   for (int i = 0; i < length; i++) {
-    Serial.print((char) payload[i]);
+    payload_n += (char) payload[i];
   }
 
-  String myString = String((char*)payload);
-  Serial.println(myString);
+  Serial.println(payload_n);
   Serial.println("-----------------------");
   setAccionar(true);
 }
