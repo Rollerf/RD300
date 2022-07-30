@@ -1,13 +1,13 @@
 #include <Arduino.h>
 
 //SALIDAS:
-#define MC 8//Motor cerrar
-#define MA 9//Motor abrir
-#define MV 10//Motor velocidad
+#define MC 14//Motor cerrar
+#define MA 12//Motor abrir
+#define MV 13//Motor velocidad
 
 void setup_motor()
 {
-  for (byte i = 8; i <= 10; i++)
+  for (byte i = 12; i <= 14; i++)
   {
     pinMode(i, OUTPUT);
     digitalWrite(i, HIGH);
