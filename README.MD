@@ -20,8 +20,8 @@ const int mqtt_port = ;
 ## Connections
 | Name                | Name in board | GPIO/IDE Arduino name |
 |---------------------|---------------|-----------------------|
-| Open limit switch   | D1            | 5                     |
-| Closed limit switch | D2            | 4                     |
+| Open limit switch   | D2            | 5                     |
+| Closed limit switch | D1            | 4                     |
 | Engine close        | D5            | 14                    |
 | Engine open         | D6            | 12                    |
 | Engine stop         | D7            | 13                    |

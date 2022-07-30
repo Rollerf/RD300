@@ -1,7 +1,28 @@
 #include <Arduino.h>
 
-//TEMPORIZADOR 1:
+//CONFIGURACION VELOCIDAD
+static unsigned long Pf = 0;
 
+static unsigned long Prapida_f = 0;
+static unsigned long Pseguridad_f = 0;
+
+static unsigned long Prapida_o = 0;
+static unsigned long Pseguridad_o = 0;
+
+const unsigned long Po = 10000;
+//PROBLEMA: Al ser Po = 0 no puedo poner el tiempo de seguridad por que seria un numero negativo
+// y par atrabajar con millis() necesito unsigned long
+//SOLUCION: Offset de 1000 Po = 10000; //No influye por que todos los tiempos calculados incluyen este ofset, que se descuenta cuando se hacen operaciones entre ellos.
+
+void setPosicionFinal(unsigned long posicionFinalGuardada) {
+  Pf = posicionFinalGuardada;
+}
+
+unsigned long getPosicionFinal() {
+  return Pf;
+}
+
+//TEMPORIZADOR 1:
 bool T1(bool estado, long consignaTiempo) //Para activar
 {
   static unsigned long tiempoInicial;
@@ -31,31 +52,33 @@ bool T1(bool estado, long consignaTiempo) //Para activar
   }
 }
 
+void calcularTiempos() {
+  Prapida_f = Pf - 1000;
+  Pseguridad_f = Pf + 5000;
+  ////Serial.println("Prapida_f:");
+  //Serial.println(Prapida_f);
+
+  //Serial.println("Pseguridad:_f");
+  //Serial.println(Pseguridad_f);
+
+  //POSICION INICIAL CERRADO
+  Prapida_o = Po + 1000;
+  Pseguridad_o = Po - 5000;
+}
+
 //CALCULO DE T_VRAPIDA Y T_SEGURIDAD:
 // Esta funcion trabaja según la fase en la que este el portal. En cada
 // sitio del programa donde cuadre se llama a esta función con una fase
 byte C_Tiempos(byte fase) //Para activar
 {
-
+  //VARIABLES
   static unsigned long tiempoInicio;
-  static unsigned long Pf;
-
-
-  static unsigned long Prapida_f;
-  static unsigned long Pseguridad_f;
-
-  static unsigned long Prapida_o;
-  static unsigned long Pseguridad_o;
-
   static unsigned long Pa;
   static unsigned long Pa_a;
   static unsigned long Pa_c;
 
   unsigned long Ta;
-  unsigned long Po = 10000;
-  //PROBLEMA: Al ser Po = 0 no puedo poner el tiempo de seguridad por que seria un numero negativo
-  // y par atrabajar con millis() necesito unsigned long
-  //SOLUCION: Offset de 1000 Po = 10000;
+
 
   switch (fase)
   {
@@ -72,23 +95,10 @@ byte C_Tiempos(byte fase) //Para activar
 
       //POSICION FINAL ABIERTO
       Pf = Pa + Po;
-      //Serial.println("PF:");
-      //Serial.println(Pf);
-      Prapida_f = Pf - 1000;
-      Pseguridad_f = Pf + 5000;
-      ////Serial.println("Prapida_f:");
-      //Serial.println(Prapida_f);
 
-      //Serial.println("Pseguridad:_f");
-      //Serial.println(Pseguridad_f);
-      //POSICION INICIAL CERRADO
-      Prapida_o = Po + 1000;
-      Pseguridad_o = Po - 5000;
-      //Serial.println("Prapida:_o");
-      //Serial.println(Prapida_o);
+      Serial.println(Pf);
 
-      //Serial.println("Pseguridad:_o");
-      //Serial.println(Pseguridad_o);
+      calcularTiempos();
 
       break;
 
