@@ -1,37 +1,66 @@
 #include <Arduino.h>
-#include <Switches.h>
-
-Switches* switchCentralita;
+#include <Timer.h>
 
 //ENTRADAS DIGITALES:
-#define FC 3//Portal cerrado
+#define FC 5//Portal cerrado
 #define FA 4//Portal abierto
-#define centralita 5//Centralita rolling code
 
 //ENTRADA ANALOGICA:
-#define consumo A0//Lectura analógica
+#define entrada_consumo A0//Lectura analógica
+
+//VARIABLES ESTADO
+static bool accionar = false;
+static int consumo = 0;
+static int consumoLimite = 100;
+
+//Constantes
+const unsigned long TIEMPO_ANTIREBOTE = 7;
+
+const byte numeroMuestras = 35;
+
+const boolean START = true;
+const boolean RESET = false;
+
+//TIMERS
+TON* tAnalogReadInterval;
+
+void setAccionar(bool nuevaAccion) {
+  accionar = nuevaAccion;
+}
+
+void setConsumo(int nuevoConsumo) {
+  consumo = nuevoConsumo;
+}
+
+void setConsumoLimite(int nuevoConsumoLimite) {
+  consumoLimite = nuevoConsumoLimite;
+}
+
+int getConsumo() {
+  return consumo;
+}
+
+int getConsumoLimite() {
+  return consumoLimite;
+}
 
 void setup_entradas()
 {
   pinMode(FC, INPUT_PULLUP);
   pinMode(FA, INPUT_PULLUP);
-  pinMode(centralita, INPUT_PULLUP);
 
-  switchCentralita = new Switches(60, centralita);
+  tAnalogReadInterval = new TON(7);
 }
 
 bool recibir()
 {
-  static unsigned long tInicial = 0;
-  if (millis() >= tInicial + 1500)
-  {
-    if (switchCentralita->buttonMode(true)) {
-      tInicial = millis();
-      return true;
+  if (accionar) {
+    accionar = false;
 
-    }
+    return !accionar;
   }
-  return false;
+
+  return accionar;
 }
 
 byte antireboteFC()
@@ -39,11 +68,11 @@ byte antireboteFC()
   byte PM = digitalRead(FC);
   static byte estadoFC = 0; //En esta variable guardo el estado actual del pulsador
   static unsigned long tInicial_FC = millis();
-  const unsigned long antiRebote = 60; //Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
+
   if (PM != estadoFC)
   {
     PM = digitalRead(FC);
-    if (millis() >= tInicial_FC + antiRebote)
+    if (millis() >= tInicial_FC + TIEMPO_ANTIREBOTE)
     {
       estadoFC = PM;
     }
@@ -60,11 +89,11 @@ byte antireboteFA()
   byte PM = digitalRead(FA);
   static byte estadoFA = 0; //En esta variable guardo el estado actual del pulsador
   static unsigned long tInicial_FA = millis();
-  const unsigned long antiRebote = 60; //Tiempo antirebote del pulsador. AJUSTAR SEGUN NECESIDAD.
+
   if (PM != estadoFA)
   {
     PM = digitalRead(FA);
-    if (millis() >= tInicial_FA + antiRebote)
+    if (millis() >= tInicial_FA + TIEMPO_ANTIREBOTE)
     {
       estadoFA = PM;
     }
@@ -80,10 +109,26 @@ byte antireboteFA()
 bool antiaplastamiento(bool arranque)
 {
   static unsigned long tInicialAplastamiento = millis();
-  int fuerza = analogRead(consumo);
-  const int fuerza_limite = 150; //Anterior valor 200
-  static int fuerza_max;
   static bool listo = false;
+  static int fuerzaSum = 0;
+  static byte contadorMedia = 0;
+  static int consumoActual = 0;
+
+  if (tAnalogReadInterval->IN(START)) {
+    fuerzaSum += analogRead(entrada_consumo);
+
+    contadorMedia++;
+
+    tAnalogReadInterval->IN(RESET);
+  }
+
+  if (contadorMedia >= numeroMuestras) {
+    consumoActual = fuerzaSum / contadorMedia;
+    setConsumo(consumoActual);
+    fuerzaSum = 0;
+    contadorMedia = 0;
+  }
+
   //Serial.println(fuerza);
   if (arranque && !listo)
   {
@@ -96,19 +141,12 @@ bool antiaplastamiento(bool arranque)
   {
     listo = false;
     tInicialAplastamiento = millis();
-    fuerza_max = 0;
+    consumoActual = 0;
   }
   if (listo)
   {
-    if (fuerza > fuerza_max) //Actualizamos el valor de fuerza_max al más alto
-    {
-      fuerza_max = fuerza;
-    }
-
-    if (fuerza_max > fuerza_limite) //Si la fuerza maxima supera el limite
-    {
-      //Serial.println(fuerza_max);
-      return true;//CAMBIAR POR TRUE
+    if (consumoActual > consumoLimite) {
+      return true;
     }
     else
     {
