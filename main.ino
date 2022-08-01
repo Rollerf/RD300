@@ -32,6 +32,7 @@ bool E10 = false;
 //TIMERS:
 TON* tPublishInfo;
 TON* tSerial;
+TON* tCheckConnection;
 
 //CONSTANTES
 char* CERRADO = "cerrado";
@@ -58,7 +59,7 @@ void setup() {
 
   setup_entradas();
 
-//Init limit switchs
+  //Init limit switchs
   Serial.print("antireboteFC: ");
   Serial.println(antireboteFC());
 
@@ -75,6 +76,7 @@ void setup() {
 
   tPublishInfo = new TON(1000);
   tSerial = new TON(5000);
+  tCheckConnection = new TON(52000);
 }
 
 void publishInfo() {
@@ -112,12 +114,22 @@ void publishInfo() {
 
 }
 
+void checkMqttConnection() {
+  if (tCheckConnection->IN(START)) {
+    if (!client.connected()) {
+      ESP.restart();
+    }
+
+    tCheckConnection->IN(RESET);
+  }
+}
+
 void loop()
 {
   ArduinoOTA.handle();
   client.loop();
   yield();
-  
+
   publishInfo();
 
   if (E0) //Posicion standby
@@ -129,6 +141,7 @@ void loop()
     }
 
     parar();
+    checkMqttConnection();
 
     if (recibir())
     {
@@ -201,9 +214,9 @@ void loop()
   {
     if (tSerial->IN(START)) {
       Serial.println("E3");
-//
-//      Serial.print("Wifi: ");
-//      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
+      //
+      //      Serial.print("Wifi: ");
+      //      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
 
       tSerial->IN(RESET);
     }
@@ -220,8 +233,8 @@ void loop()
 
     if (!antireboteFC() && antireboteFA())
     {
-//      Serial.print("Wifi: ");
-//      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
+      //      Serial.print("Wifi: ");
+      //      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
 
       E4 = true;
       E3 = false;
@@ -266,19 +279,18 @@ void loop()
     C_Tiempos(2);
   }
 
-  //TODO: En el E3 hay wifi todo el tiempo. Pero cuando llega aqui peta. Por que? Se;al de WIFI si tiene
   if (E4)//Posicion standby
   {
     if (tSerial->IN(START)) {
       Serial.println("E4");
-//      Serial.print("Recorrido guardado: ");
-//      Serial.println(recorridoGuardado);
-//
-//      Serial.print("Wifi: ");
-//      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
-//
-//      Serial.println("IP address: ");
-//      Serial.println(WiFi.localIP());
+      //      Serial.print("Recorrido guardado: ");
+      //      Serial.println(recorridoGuardado);
+      //
+      //      Serial.print("Wifi: ");
+      //      Serial.println(WiFi.waitForConnectResult() == WL_CONNECTED);
+      //
+      //      Serial.println("IP address: ");
+      //      Serial.println(WiFi.localIP());
 
       tSerial->IN(RESET);
     }
@@ -290,6 +302,7 @@ void loop()
     }
 
     parar();
+    checkMqttConnection();
 
     T1(0, 0); //Reseteo T1
     antiaplastamiento(false);//Reseteamos valores de antiaplastamiento
@@ -506,7 +519,7 @@ void WIFIConnection() {
 }
 
 void OTAConfig() {
-  ArduinoOTA.setHostname("portal-trasero-8266");
+  ArduinoOTA.setHostname(client_name);
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -548,7 +561,6 @@ void MQTTConnection() {
 
   while (!client.connected()) {
     String client_id = client_name;
-//    String client_id = "esp8266-client-";
     client_id += String(WiFi.macAddress());
     Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
     if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
@@ -559,7 +571,7 @@ void MQTTConnection() {
       delay(2000);
     }
   }
-  
+
   client.subscribe(topicCommand);
 }
 
@@ -573,8 +585,8 @@ void callback(char *topicCommand, byte *payload, unsigned int length) {
     payload_n += (char) payload[i];
   }
 
-//  Serial.println(payload_n);
-//  Serial.println("-----------------------");
+  //  Serial.println(payload_n);
+  //  Serial.println("-----------------------");
 
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload_n);
