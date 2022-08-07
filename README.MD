@@ -25,5 +25,5 @@ const char *client_name = "";
 | Closed limit switch | D1            | 4                     |
 | Engine close        | D5            | 14                    |
 | Engine open         | D6            | 12                    |
-| Engine stop         | D7            | 13                    |
+| Engine speed        | D7            | 13                    |
 | Engine strength     | A0            | A0                    |
