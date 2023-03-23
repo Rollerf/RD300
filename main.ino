@@ -603,6 +603,7 @@ void MQTTConnection()
       Serial.print("failed with state ");
       Serial.print(client.state());
       delay(2000);
+      ESP.restart();
     }
   }
 
