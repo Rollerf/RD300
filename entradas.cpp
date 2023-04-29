@@ -1,9 +1,6 @@
 #include <Arduino.h>
 #include <Timer.h>
-
-//ENTRADAS DIGITALES:
-#define FC 5//Portal cerrado
-#define FA 4//Portal abierto
+#include "InputsConfig.h"
 
 //ENTRADA ANALOGICA:
 #define entrada_consumo A0//Lectura analógica
