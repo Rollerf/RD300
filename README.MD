@@ -36,11 +36,8 @@ Input configuration file:
 | Name                | Name in board | GPIO/IDE Arduino name |
 |---------------------|---------------|-----------------------|
 | Open limit switch   | D2            | 4                     |
-| Closed limit switch | RX            | 3                    |
+| Closed limit switch | D1            | 5                    |
 | Engine close        | D5            | 14                    |
 | Engine open         | D6            | 12                    |
 | Engine speed        | D7            | 13                    |
 | Engine strength     | A0            | A0                    |
-
-### Notes
-- I had to split the connections in two because the ESP8266 Rear Door has some problem with D1 pin that is not working right now.

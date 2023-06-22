@@ -10,6 +10,7 @@ static unsigned long Prapida_o = 0;
 static unsigned long Pseguridad_o = 0;
 
 const unsigned long Po = 10000;
+const int tiempoSeguridad = 10000;
 //PROBLEMA: Al ser Po = 0 no puedo poner el tiempo de seguridad por que seria un numero negativo
 // y par atrabajar con millis() necesito unsigned long
 //SOLUCION: Offset de 1000 Po = 10000; //No influye por que todos los tiempos calculados incluyen este ofset, que se descuenta cuando se hacen operaciones entre ellos.
@@ -54,7 +55,7 @@ bool T1(bool estado, long consignaTiempo) //Para activar
 
 void calcularTiempos() {
   Prapida_f = Pf - 1000;
-  Pseguridad_f = Pf + 5000;
+  Pseguridad_f = Pf + tiempoSeguridad;
   ////Serial.println("Prapida_f:");
   //Serial.println(Prapida_f);
 
@@ -63,7 +64,7 @@ void calcularTiempos() {
 
   //POSICION INICIAL CERRADO
   Prapida_o = Po + 1000;
-  Pseguridad_o = Po - 5000;
+  Pseguridad_o = Po - tiempoSeguridad;
 }
 
 //CALCULO DE T_VRAPIDA Y T_SEGURIDAD:
